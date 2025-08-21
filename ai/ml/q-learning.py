@@ -1,4 +1,5 @@
 import random
+
 class Board:
     def __init__(self):
         self.board = [0 for _ in range(9)]
@@ -6,14 +7,15 @@ class Board:
     def clear(self):
         self.board = [0 for _ in range(9)]
     
-    def is_full(self)->bool:
+    def is_full(self) -> bool:
         for i in range(len(self.board)):
             if self.board[i] == 0:
                 return False
         return True 
     
+    # CHECK FOR PATTERN ------ 
     def values_match(self, idx1, idx2, idx3):
-        if self.board[idx1] == self.board[idx2] and self.board[idx2] == self.board[idx3]:
+        if self.board[idx1] == self.board[idx2] and self.board[idx2] == self.board[idx3] and self.board[idx1] != 0:
             return True
         return False
 
@@ -30,120 +32,106 @@ class Board:
         return None
     
     def diagonal_match(self):
-        if self.values_match(0, 4, 8) or self.values_match(2, 4, 6):
+        # Fixed: ensure we check each diagonal separately
+        if self.values_match(0, 4, 8):
+            return self.board[4]
+        elif self.values_match(2, 4, 6):
             return self.board[4]
         return None
-
-    def winner(self) -> int:
-        #1 represents player 1 win, -1 represents 
-        winner = self.horizontal_match() or self.vertical_match() or self.diagonal_match()
-        if winner:
-            return winner
-        elif self.is_full:
-            return 0 #represents draw
-        else:
-            return None #represents the game is not finished
     
-    def __repr__(self):
-        return "".join(self.board)
+    # ----------------------
+    def __str__(self):
+        # Fixed: convert int to str to avoid TypeError in "".join
+        return "".join(str(x) for x in self.board)
 
-#The class is intended to represent 1 game of Tic-Tac-Toe
+
+# The class is intended to represent 1 game of Tic-Tac-Toe
 class TicTacToeGame:
-    #all game history will be a class attribute shared between all instances of the class 
+    # all game history will be a class attribute shared between all instances of the class 
     all_game_history = {}
-    def __init__(self, board:Board, epsilon, learning_rate=15, player=1):
-        self.board = Board
+    
+    def __init__(self, board: Board, epsilon=0.1, learning_rate=0.15, player=1):
+        self.board = board
         self.lr = learning_rate
         self.epsilon = epsilon
-        self.player = player 
+        self.player = player # 1 represents first/starting player, -1 represents second player 
         self.history = []
-    
-    def update_Q(cls, self, winner):
-        if winner == self.player:
-            self_reward, other_reward = 1, -1
-        elif winner == -self.player:
-            self_reward, other_reward = -1, 1
-        else: #marks a draw
-            return 
-        for i in range(self.history):
-            state, move, player = self.history[i]
-            reward = self_reward if player == self.player else other_reward
-            cls.all_game_history((state, move)) = cls.all_game_history((state, move)) + self.lr * (reward - cls.all_game_history((state, move)))
-        
+
     def valid_moves(self):
         moves = []
-        for i in range(len(self.board)):
-            if self.board[i] == 0:
+        for i in range(len(self.board.board)):  # Fixed: use self.board.board
+            if self.board.board[i] == 0:
                 moves.append(i)
         return moves 
     
     def is_valid_move(self, idx):
-        if self.board[idx] == 0:
-            return True 
-        else:
-            return False
+        return self.board.board[idx] == 0  # Simplified
 
-    def store_user_move(cls, self, idx=-1):
+    def store_user_move(self, idx=-1):
         if idx == -1:
             idx = random.choice(self.valid_moves())
         elif not self.is_valid_move(idx):
             raise Exception("Invalid move allowed - error in front end")
-        if (str(self.board), idx) not in cls.all_game_history:
-            cls.all_game_history[(str(self.board), idx)] = 0
+        if (str(self.board), idx) not in self.__class__.all_game_history:
+            self.__class__.all_game_history[(str(self.board), idx)] = 0
         self.history.append((str(self.board), idx, -self.player))
-        self.board[idx] = -self.player 
-        #check if a winner is decided 
+        self.board.board[idx] = -self.player 
+        # Winner check happens outside
 
-    def make_move(cls, self):
+    def make_move(self):
         valid_moves = self.valid_moves()
         found = False
-        # Check if current board state exists in Q-table, arranged in descending order 
-        for (state, move) in cls.all_game_history:
+        idx = -1
+
+        # Check if current board state exists in Q-table
+        for (state, move) in self.__class__.all_game_history:
             if state == str(self.board):
                 idx = move
+                found = True
                 break
+
         # Epsilon-greedy: explore with probability self.epsilon
         if random.random() < self.epsilon or not found:
             idx = random.choice(valid_moves)
             if not found:
-                cls.all_game_history[(str(self.board), idx)] = 0
+                self.__class__.all_game_history[(str(self.board), idx)] = 0
 
         self.history.append((str(self.board), idx, self.player))
-        self.board[idx] = self.player 
+        self.board.board[idx] = self.player  # current player (1 or -1)
 
+    def winner(self) -> int:
+        # 1 represents player 1 win, -1 represents player 2 win, 0 = draw
+        winner = self.board.horizontal_match() or self.board.vertical_match() or self.board.diagonal_match()
+        if winner:
+            return winner
+        elif self.board.is_full():  # Fixed: call method
+            return 0  # represents draw
+        else:
+            return None  # represents the game is not finished
+    
+    def update_Q(self, winner):
+        if winner == self.player:
+            self_reward, other_reward = 1, -1
+        elif winner == -self.player:
+            self_reward, other_reward = -1, 1
+        else:  # marks a draw
+            self_reward = other_reward = 0
+
+        for i in range(len(self.history)):  # Fixed: use len(self.history)
+            state, move, player = self.history[i]
+            reward = self_reward if player == self.player else other_reward
+            # Fixed: dictionary indexing uses []
+            self.__class__.all_game_history[(state, move)] = \
+                self.__class__.all_game_history[(state, move)] + self.lr * \
+                (reward - self.__class__.all_game_history[(state, move)])
 
 
 # -------------------------
-# 3. Training loop
+# 3. Training loop example
 # -------------------------
-
-# Function: train
-# - repeat for many games (e.g. 50,000 times)
-# - initialize an empty board
-# - keep a history list of (state, move, player) for this game
-# - alternate between players making moves until the game ends
-# - when game ends, call update_Q to adjust the Q-values
-
-
-# -------------------------
-# 4. Play against human
-# -------------------------
-
-# Function: play_human
-# - start an empty board
-# - loop:
-#   - ask human for a move, update board
-#   - check if game ended
-#   - bot chooses move using Q (epsilon=0 so it always picks best known move)
-#   - update board
-#   - check if game ended
-# - print board after each move
-
-
-# -------------------------
-# 5. Run the program
-# -------------------------
-
-# if __name__ == "__main__":
-# - call train() first so the bot learns
-# - then call play_human() so you can test against it
+for i in range(1000):
+    game = TicTacToeGame(Board(), epsilon=0.1)  # Fixed: provide board and epsilon
+    while game.winner() is None:  # Fixed: call winner()
+        game.store_user_move()
+        game.make_move()
+    game.update_Q(game.winner())  # Fixed: call winner() and pass correctly
