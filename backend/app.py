@@ -13,6 +13,9 @@ app.add_middleware(
 
 games = {}
 
+class NewGameRequest(BaseModel):
+    player_mark: str  # "X" or "O"
+
 class Move(BaseModel):
     game_id: str
     position: int
@@ -40,24 +43,37 @@ def legal_actions(board: List[str]) -> List[int]:
     return actions
 
 def agent_move_stub(board: List[str]) -> Optional[int]:
-    # code for reinforcement learning algorithim will come here
-
+    # reinforcement learning algorithim code comes here
+    
 @app.post("/new")
-def new_game():
+def new_game(req: NewGameRequest):
     gid = str(len(games) + 1)
-    games[gid] = [""] * 9
-    return {"game_id": gid, "board": games[gid], "status": "in_progress"}
+    player = req.player_mark.upper()
+    ai = "O" if player == "X" else "X"
+    board = [""] * 9
+    # if human chooses O, AI plays first
+    if player == "O":
+        ai_pos = agent_move_stub(board)
+        if ai_pos is not None:
+            board[ai_pos] = ai
+    games[gid] = {"board": board, "player": player, "ai": ai}
+    return {"game_id": gid, "board": board, "status": "in_progress", "player": player, "ai": ai}
 
 @app.post("/move")
 def player_move(m: Move):
-    board = games[m.game_id]
+    game = games[m.game_id]
+    board = game["board"]
+    player = game["player"]
+    ai = game["ai"]
+
     if 0 <= m.position <= 8 and board[m.position] == "":
-        board[m.position] = "X"
+        board[m.position] = player
     status = check_winner(board)
     if status:
         return {"board": board, "status": status}
+
     ai_pos = agent_move_stub(board)
     if ai_pos is not None:
-        board[ai_pos] = "O"
+        board[ai_pos] = ai
     status = check_winner(board)
     return {"board": board, "status": status or "in_progress"}
