@@ -51,17 +51,23 @@ class Board:
 class TicTacToeGame:
     #all game history will be a class attribute shared between all instances of the class 
     all_game_history = {}
-    def __init__(self, board:Board, learning_rate):
+    def __init__(self, board:Board, learning_rate=15, player=1):
         self.board = Board
         self.lr = learning_rate
-        self.history_p1 = {}
-        self.history_p2 = {}
+        self.player = player 
+        self.history = []
     
-    def reward_function(self, rewardp1, rewardp2):
-        for i in range(self.history_p1):
-            self.history_p1[i] = self.history_p1[i] + self.lr * (rewardp1 - self.history_p1[i])
-        for i in range(self.history_p2):
-            self.history_p2[i] = self.history_p2[i] + self.lr * (rewardp2 - self.history[i])
+    def update_Q(cls, self, winner):
+        if winner == self.player:
+            self_reward, other_reward = 1, -1
+        elif winner == -self.player:
+            self_reward, other_reward = -1, 1
+        else: #marks a draw
+            return 
+        for i in range(self.history):
+            state, move, player = self.history[i]
+            reward = self_reward if player == self.player else other_reward
+            cls.all_game_history((state, move)) = cls.all_game_history((state, move)) + self.lr * (reward - cls.all_game_history((state, move)))
         
     def valid_moves(self):
         moves = []
@@ -76,35 +82,29 @@ class TicTacToeGame:
         else:
             return False
 
-    def store_user_move(self, idx, player):
+    def store_user_move(cls, self, idx):
         if not self.is_valid_move(idx):
             raise Exception("Invalid move allowed - error in front end")
-        
-        self.board[idx] = player
-        self.history_p2((str(self.board), idx)) = 0
+        if (str(self.board), idx) not in cls.all_game_history:
+            cls.all_game_history[(str(self.board), idx)] = 0
+        self.history.append((str(self.board), idx, -self.player))
+        self.board[idx] = -self.player 
         #check if a winner is decided 
 
     def make_move(cls, self):
         valid_moves = self.valid_moves()
         idx = -1
-
-        # Check if current board state exists in history
+        # Will arrange board in descending order of Q 
         for state, move in cls.all_game_history:
             if state == str(self.board):
                 idx = move
                 break
-
-        # If not found, pick a random valid move
         if idx == -1:
             idx = random.choice(valid_moves)
+            cls.all_game_history[(str(self.board), idx)] = 0
 
-        # Record the move in the player's history with initial Q-value 0
-        self.history_p1[(str(self.board), idx)] = 0
-
-        # Make the move on the board
-        self.board[idx] = 1  # assuming player 1 is always 1
-
-
+        self.history.append((str(self.board), idx, self.player))
+        self.board[idx] = self.player  # assuming player 1 is always 1
 
 
 # -------------------------
@@ -117,16 +117,6 @@ class TicTacToeGame:
 # - keep a history list of (state, move, player) for this game
 # - alternate between players making moves until the game ends
 # - when game ends, call update_Q to adjust the Q-values
-
-# Function: update_Q
-# - input: history (list of moves made) and the game result
-# - for each (state, move, player):
-#   - assign reward:
-#       +1 if that player won
-#       -1 if that player lost
-#        0 if draw
-#   - update the Q-value using:
-#       Q[(state, move)] = old_value + learning_rate * (reward - old_value)
 
 
 # -------------------------
