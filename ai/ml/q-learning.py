@@ -51,9 +51,10 @@ class Board:
 class TicTacToeGame:
     #all game history will be a class attribute shared between all instances of the class 
     all_game_history = {}
-    def __init__(self, board:Board, learning_rate=15, player=1):
+    def __init__(self, board:Board, epsilon, learning_rate=15, player=1):
         self.board = Board
         self.lr = learning_rate
+        self.epsilon = epsilon
         self.player = player 
         self.history = []
     
@@ -82,8 +83,10 @@ class TicTacToeGame:
         else:
             return False
 
-    def store_user_move(cls, self, idx):
-        if not self.is_valid_move(idx):
+    def store_user_move(cls, self, idx=-1):
+        if idx == -1:
+            idx = random.choice(self.valid_moves())
+        elif not self.is_valid_move(idx):
             raise Exception("Invalid move allowed - error in front end")
         if (str(self.board), idx) not in cls.all_game_history:
             cls.all_game_history[(str(self.board), idx)] = 0
@@ -93,18 +96,21 @@ class TicTacToeGame:
 
     def make_move(cls, self):
         valid_moves = self.valid_moves()
-        idx = -1
-        # Will arrange board in descending order of Q 
-        for state, move in cls.all_game_history:
+        found = False
+        # Check if current board state exists in Q-table, arranged in descending order 
+        for (state, move) in cls.all_game_history:
             if state == str(self.board):
                 idx = move
                 break
-        if idx == -1:
+        # Epsilon-greedy: explore with probability self.epsilon
+        if random.random() < self.epsilon or not found:
             idx = random.choice(valid_moves)
-            cls.all_game_history[(str(self.board), idx)] = 0
+            if not found:
+                cls.all_game_history[(str(self.board), idx)] = 0
 
         self.history.append((str(self.board), idx, self.player))
-        self.board[idx] = self.player  # assuming player 1 is always 1
+        self.board[idx] = self.player 
+
 
 
 # -------------------------
