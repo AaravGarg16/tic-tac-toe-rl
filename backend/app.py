@@ -33,7 +33,11 @@ def check_winner(board: List[str]) -> str:
     return ""
 
 def legal_actions(board: List[str]) -> List[int]:
-    return [i for i, v in enumerate(board) if v == ""]
+    actions = []
+    for i in range(len(board)):
+        if board[i] == "":
+            actions.append(i)
+    return actions
 
 def agent_move_stub(board: List[str]) -> Optional[int]:
     # code for reinforcement learning algorithim will come here
