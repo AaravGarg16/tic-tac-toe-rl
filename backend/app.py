@@ -44,6 +44,7 @@ def legal_actions(board: List[str]) -> List[int]:
 
 def agent_move_stub(board: List[str]) -> Optional[int]:
     # reinforcement learning algorithim code comes here
+    return None
     
 @app.post("/new")
 def new_game(req: NewGameRequest):
@@ -51,7 +52,7 @@ def new_game(req: NewGameRequest):
     player = req.player_mark.upper()
     ai = "O" if player == "X" else "X"
     board = [""] * 9
-    # if human chooses O, AI plays first
+
     if player == "O":
         ai_pos = agent_move_stub(board)
         if ai_pos is not None:
@@ -59,7 +60,12 @@ def new_game(req: NewGameRequest):
     games[gid] = {"board": board, "player": player, "ai": ai}
     return {"game_id": gid, "board": board, "status": "in_progress", "player": player, "ai": ai}
 
-@app.post("/move")
+''' For @app.post("/move") :
+- This is where the human move is handled.
+- Right after that, the AI function is called (agent_move_stub for now).
+- Replace agent_move_stub with your RL code.'''
+
+@app.post("/move") 
 def player_move(m: Move):
     game = games[m.game_id]
     board = game["board"]
