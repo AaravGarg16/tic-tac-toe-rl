@@ -1,4 +1,4 @@
-
+import random
 class Board:
     def __init__(self):
         self.board = [0 for _ in range(9)]
@@ -43,9 +43,14 @@ class Board:
             return 0 #represents draw
         else:
             return None #represents the game is not finished
+    
+    def __repr__(self):
+        return "".join(self.board)
 
 #The class is intended to represent 1 game of Tic-Tac-Toe
-class TicTacToe:
+class TicTacToeGame:
+    #all game history will be a class attribute shared between all instances of the class 
+    all_game_history = {}
     def __init__(self, board:Board, learning_rate):
         self.board = Board
         self.lr = learning_rate
@@ -64,39 +69,42 @@ class TicTacToe:
             if self.board[i] == 0:
                 moves.append(i)
         return moves 
+    
+    def is_valid_move(self, idx):
+        if self.board[idx] == 0:
+            return True 
+        else:
+            return False
 
-            
-    def check_winner(self):
-        return self.board.
+    def store_user_move(self, idx, player):
+        if not self.is_valid_move(idx):
+            raise Exception("Invalid move allowed - error in front end")
         
+        self.board[idx] = player
+        self.history_p2((str(self.board), idx)) = 0
+        #check if a winner is decided 
+
+    def make_move(cls, self):
+        valid_moves = self.valid_moves()
+        idx = -1
+
+        # Check if current board state exists in history
+        for state, move in cls.all_game_history:
+            if state == str(self.board):
+                idx = move
+                break
+
+        # If not found, pick a random valid move
+        if idx == -1:
+            idx = random.choice(valid_moves)
+
+        # Record the move in the player's history with initial Q-value 0
+        self.history_p1[(str(self.board), idx)] = 0
+
+        # Make the move on the board
+        self.board[idx] = 1  # assuming player 1 is always 1
 
 
-# Function: make_move
-# - place the current player (1 for X, -1 for O) on the board at the chosen index
-
-# Function: check_winner
-# - check all rows, columns, diagonals
-# - return 1 if X wins, -1 if O wins
-# - return 0 if it's a draw (board full, no winner)
-# - return None if game not finished
-
-
-# -------------------------
-# 2. Q-table (the notebook)
-# -------------------------
-
-# Dictionary: Q
-# - keys: (state_string, move)
-# - values: how good that move is (start at 0)
-
-# Function: get_state
-# - convert board list into a string (so it can be stored in a dictionary key)
-
-# Function: choose_move
-# - epsilon-greedy strategy:
-#   - with probability epsilon, choose a random valid move
-#   - otherwise, choose the move with the highest Q-value
-# - if multiple moves have the same Q-value, pick randomly among them
 
 
 # -------------------------
