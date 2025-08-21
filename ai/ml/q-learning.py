@@ -68,7 +68,9 @@ class TicTacToeGame:
         return self.board.board[idx] == 0  # Simplified
 
     def store_user_move(self, idx=-1):
-        if idx == -1:
+        if not self.valid_moves():
+            return
+        elif idx == -1:
             idx = random.choice(self.valid_moves())
         elif not self.is_valid_move(idx):
             raise Exception("Invalid move allowed - error in front end")
@@ -79,7 +81,8 @@ class TicTacToeGame:
         # Winner check happens outside
 
     def make_move(self):
-        valid_moves = self.valid_moves()
+        if not self.valid_moves():
+            return
         found = False
         idx = -1
 
@@ -92,7 +95,7 @@ class TicTacToeGame:
 
         # Epsilon-greedy: explore with probability self.epsilon
         if random.random() < self.epsilon or not found:
-            idx = random.choice(valid_moves)
+            idx = random.choice(self.valid_moves())
             if not found:
                 self.__class__.all_game_history[(str(self.board), idx)] = 0
 
@@ -129,9 +132,10 @@ class TicTacToeGame:
 # -------------------------
 # 3. Training loop example
 # -------------------------
-for i in range(1000):
+for i in range(5):
     game = TicTacToeGame(Board(), epsilon=0.1)  # Fixed: provide board and epsilon
     while game.winner() is None:  # Fixed: call winner()
         game.store_user_move()
         game.make_move()
     game.update_Q(game.winner())  # Fixed: call winner() and pass correctly
+print(TicTacToeGame.all_game_history)
