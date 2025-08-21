@@ -62,8 +62,7 @@ def new_game(req: NewGameRequest):
 
 ''' For @app.post("/move") :
 - This is where the human move is handled.
-- Right after that, the AI function is called (agent_move_stub for now).
-- Replace agent_move_stub with your RL code.'''
+- Right after that, the AI function is called (agent_move_stub for now).'''
 
 @app.post("/move") 
 def player_move(m: Move):
