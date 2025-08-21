@@ -1,35 +1,75 @@
 
 class Board:
-    def __init__(self, player:int=1):
-        self.board = [[0 for _ in range(3)] for _ in range(3)]
+    def __init__(self):
+        self.board = [0 for _ in range(9)]
+    
+    def clear(self):
+        self.board = [0 for _ in range(9)]
+    
+    def is_full(self)->bool:
+        for i in range(len(self.board)):
+            if self.board[i] == 0:
+                return False
+        return True 
+    
+    def values_match(self, idx1, idx2, idx3):
+        if self.board[idx1] == self.board[idx2] and self.board[idx2] == self.board[idx3]:
+            return True
+        return False
+
+    def horizontal_match(self):
+        for i in range(0, 7, 3):
+            if self.values_match(i, i+1, i+2):
+                return self.board[i]
+        return None
+
+    def vertical_match(self):
+        for i in range(3):
+            if self.values_match(i, i+3, i+6):
+                return self.board[i]
+        return None
+    
+    def diagonal_match(self):
+        if self.values_match(0, 4, 8) or self.values_match(2, 4, 6):
+            return self.board[4]
+        return None
+
+    def winner(self) -> int:
+        #1 represents player 1 win, -1 represents 
+        winner = self.horizontal_match() or self.vertical_match() or self.diagonal_match()
+        if winner:
+            return winner
+        elif self.is_full:
+            return 0 #represents draw
+        else:
+            return None #represents the game is not finished
 
 #The class is intended to represent 1 game of Tic-Tac-Toe
 class TicTacToe:
     def __init__(self, board:Board, learning_rate):
         self.board = Board
         self.lr = learning_rate
-        self.history = {}
+        self.history_p1 = {}
+        self.history_p2 = {}
     
-    # def reward_function(self, reward):
-    #     self.history[(state, move)] = self.history[(state, move)] + self.lr * (reward - self.history[(state, move)] )
+    def reward_function(self, rewardp1, rewardp2):
+        for i in range(self.history_p1):
+            self.history_p1[i] = self.history_p1[i] + self.lr * (rewardp1 - self.history_p1[i])
+        for i in range(self.history_p2):
+            self.history_p2[i] = self.history_p2[i] + self.lr * (rewardp2 - self.history[i])
         
     def valid_moves(self):
         moves = []
         for i in range(len(self.board)):
-            for j in range(len(self.board[i])):
-                if self.board[i][j] == 0:
-                    moves.append((i,j))
+            if self.board[i] == 0:
+                moves.append(i)
         return moves 
 
             
-    # def check_winner(self):
+    def check_winner(self):
+        return self.board.
+        
 
-
-
-# - return an empty 3x3 board (represented as a list of 9 zeros)
-
-# Function: get_valid_moves
-# - return a list of indexes (0-8) that are still empty
 
 # Function: make_move
 # - place the current player (1 for X, -1 for O) on the board at the chosen index
