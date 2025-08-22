@@ -35,21 +35,16 @@ class BasicNN(nn.Module):
         # second layer: 12 hidden -> 9 output
         self.fc2 = nn.Linear(12, 9)  
 
-    def current_reward(self) -> int:
-        winner = self.board.horizontal_match() or self.board.vertical_match() or self.board.diagonal_match()
-        if winner:
-            return winner
-        else:   
-            return 0  # draw
-    
     def forward(self, x):
         x1 = torch.relu(self.fc1(x))   # apply weights+biases from fc1 with relu activation
         x2 = self.fc2(x)               # apply weights+biases from fc2
         return x2
     
+    #calculated with the bellman equation
     def target(self, gamma):
-        imm_reward = self.game(state)
-        reward = self.forward()
+        imm_reward = self.board.reward()
+        max_reward = max(self.forward(self.board))
+        return imm_reward + gamma*max_reward
 
     def backwards(self, model, inputs, labels):
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)

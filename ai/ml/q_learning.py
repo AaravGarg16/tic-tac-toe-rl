@@ -50,7 +50,7 @@ class Board:
     def is_valid_move(self, idx):
         return self.board[idx] == 0  
     
-    def winner(self):
+    def reward(self):
         winner = self.horizontal_match() or self.vertical_match() or self.diagonal_match()
         if winner:
             return winner 
@@ -130,5 +130,5 @@ for i in range(5):
     while not game.board.game_over(): 
         game.store_user_move()
         game.make_move()
-    game.update_Q(game.board.winner())  
+    game.update_Q(game.board.reward())  
 print(TicTacToeGame.all_game_history)
