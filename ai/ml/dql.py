@@ -3,7 +3,7 @@ import random
 import torch.nn as nn
 import torch.nn.functional as F
 
-from q_learning import Board  # make sure q_learning.py is in the same folder
+from q_learning import Board  
 
 # -------------------------------
 # Neural Network for Tic-Tac-Toe
