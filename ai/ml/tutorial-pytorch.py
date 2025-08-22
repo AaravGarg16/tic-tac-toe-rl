@@ -58,13 +58,18 @@ plt.xlabel('Dose')
 
 #-------------------------------------------
 
-optimizer = SGD(model.parameters(), lr=0.1)
+#Stochastic Gradient Descent 
+
+#model.params will refer to any param with requires_grad=True, with learning_rate =0.1
+optimizer = SGD(model.parameters(), lr=0.1) 
 
 print("Final bias, before optimization: " + str(model.final_bias.data) + "\n")
 
+#epoch -> each time the entire training data is seen by the model
+
 for epoch in range(100):
     
-    total_loss = 0
+    total_loss = 0 #measure of how well the model fits the data, the loss is larger if the model does not fit the training data 
     
     for iteration in range(len(inputs)):
         
@@ -75,16 +80,20 @@ for epoch in range(100):
         
         loss = (output_i - label_i)**2
         
-        loss.backward()
+        loss.backward() #calculates the derivative with respect to the parameters we want to optimize
+        #accumulates the derivatives each time we go thru the forward loop, for all data points 
         
         total_loss += float(loss)
     
     if (total_loss < 0.0001):
         print("Num steps: " + str(epoch))
         break
+
+    #has access to the derivatives from the loss function
+    #can step into the direction of decreasing the loss 
     
     optimizer.step()
-    optimizer.zero_grad()
+    optimizer.zero_grad() #set loss to 0 for the new iteration of the loop
 
 print("Step: " + str(epoch) + " Final Bias: " + str(model.final_bias.data) + "\n")
 
