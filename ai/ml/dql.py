@@ -24,50 +24,40 @@ import torch
 import torch.nn as nn  #weight and bias tensors as a part of the network
 import torch.nn.functional as F #activation function
 from torch.optim import SGD 
+from q_learning import Board
 
 class BasicNN(nn.Module):
-    def __init__(self):
+    def __init__(self, board:Board):
         super().__init__()
-        
+        self.board = board
         # first layer: 2 inputs -> 12 hidden units
         self.fc1 = nn.Linear(9, 12)  
-
-        # second layer: 12 hidden -> 1 output
+        # second layer: 12 hidden -> 9 output
         self.fc2 = nn.Linear(12, 9)  
 
+    def current_reward(self) -> int:
+        winner = self.board.horizontal_match() or self.board.vertical_match() or self.board.diagonal_match()
+        if winner:
+            return winner
+        else:   
+            return 0  # draw
     
     def forward(self, x):
-        x = torch.relu(self.fc1(x))   # apply weights+biases from fc1
-        x = self.fc2(x)               # apply weights+biases from fc2
-        output = F.relu(x)
-        return output
+        x1 = torch.relu(self.fc1(x))   # apply weights+biases from fc1 with relu activation
+        x2 = self.fc2(x)               # apply weights+biases from fc2
+        return x2
     
-    def backwards(self, model, inputs, labels):
-        optimizer = SGD(model.parameters(), lr=0.1) 
-        for epoch in range(100):
-    
-            total_loss = 0 
-            
-            for iteration in range(len(inputs)):
-                
-                input_i = inputs[iteration]
-                label_i = labels[iteration]
-                
-                output_i = model(input_i)
-                
-                loss = (output_i - label_i)**2
-                
-                loss.backward() #calculates the derivative with respect to the parameters we want to optimize
-                #accumulates the derivatives each time we go thru the forward loop, for all data points 
-                
-                total_loss += float(loss)
-                
-                if (total_loss < 0.0001):
-                    print("Num steps: " + str(epoch))
-                    break
+    def target(self, gamma):
+        imm_reward = self.game(state)
+        reward = self.forward()
 
-                #has access to the derivatives from the loss function
-                #can step into the direction of decreasing the loss 
+    def backwards(self, model, inputs, labels):
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        criterion = nn.MSELoss()
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        
+
                 
-                optimizer.step()
-                optimizer.zero_grad() #set l
