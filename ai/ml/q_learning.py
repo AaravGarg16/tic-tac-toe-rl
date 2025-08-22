@@ -50,14 +50,15 @@ class Board:
     def is_valid_move(self, idx):
         return self.board[idx] == 0  
     
-    def winner(self) -> int:
+    def winner(self):
         winner = self.horizontal_match() or self.vertical_match() or self.diagonal_match()
         if winner:
-            return winner
-        elif self.is_full():   # ✅ fixed reference here
-            return 0  # draw
+            return winner 
         else:
-            return None  # game ongoing
+            return 0 #draw or ongoing game 
+    
+    def game_over(self):
+        return self.is_full() or self.winner()!=0
 
 
 class TicTacToeGame:
@@ -103,6 +104,7 @@ class TicTacToeGame:
 
         self.history.append((str(self.board), idx, self.player))
         self.board.board[idx] = self.player  
+
     
     def update_Q(self, winner):
         if winner == self.player:
@@ -125,7 +127,7 @@ class TicTacToeGame:
 # -------------------------
 for i in range(5):
     game = TicTacToeGame(Board(), epsilon=0.1)
-    while game.board.winner() is None: 
+    while not game.board.game_over(): 
         game.store_user_move()
         game.make_move()
     game.update_Q(game.board.winner())  
