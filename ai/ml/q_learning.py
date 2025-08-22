@@ -58,7 +58,7 @@ class Board:
             return 0 #draw or ongoing game 
     
     def game_over(self):
-        return self.is_full() or self.winner()!=0
+        return self.is_full() or self.reward()!=0
 
 
 class TicTacToeGame:
