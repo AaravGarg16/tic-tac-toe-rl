@@ -24,7 +24,7 @@ class BasicNN(nn.Module):
         self.w11 = nn.Parameter(torch.tensor(2.7), requires_grad=False)
         
         #final bias layer 
-        self.final_bias = nn.Parameter(torch.tensor(-16.), requires_grad=False)
+        self.final_bias = nn.Parameter(torch.tensor(-16.), requires_grad=True)
     
     def forward(self, input):
         #the input is scaled by weights and shifted by biases of layer 1
@@ -45,16 +45,16 @@ class BasicNN(nn.Module):
 
 #-----Visualization
     
-input_doses = torch.linspace(start=0, end=1, steps=11) #create 11 tensors with values between 0, 1 
+# input_doses = torch.linspace(start=0, end=1, steps=11) #create 11 tensors with values between 0, 1 
 
-model = BasicNN_train()
-output_values = model(input_doses)
-sns.set(style='whitegrid')
-sns.lineplot(
-y=output_values.detach(), #here:detach is used to strip off the gradient 
-linewidth=2.5)
-plt.ylabel('Effectiveness')
-plt.xlabel('Dose')
+model = BasicNN()
+# output_values = model(input_doses)
+# sns.set(style='whitegrid')
+# sns.lineplot(
+# y=output_values.detach(), #here:detach is used to strip off the gradient 
+# linewidth=2.5)
+# plt.ylabel('Effectiveness')
+# plt.xlabel('Dose')
 
 #-------------------------------------------
 
@@ -66,7 +66,8 @@ optimizer = SGD(model.parameters(), lr=0.1)
 print("Final bias, before optimization: " + str(model.final_bias.data) + "\n")
 
 #epoch -> each time the entire training data is seen by the model
-
+inputs = []
+labels = []
 for epoch in range(100):
     
     total_loss = 0 #measure of how well the model fits the data, the loss is larger if the model does not fit the training data 
