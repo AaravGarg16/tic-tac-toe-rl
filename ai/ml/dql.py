@@ -1,3 +1,23 @@
+"""
+*Q-value* is the expected total reward you’ll get if you take a particular action in a given state and then follow your strategy afterwards.
+
+Input: state of the board [1, 0, 0 ... -1] (9 values, 1 dimensional) 
+Output: Q-value per position, unavailable positions masked
+Input (9) → Hidden (32, ReLU) → Output (9, raw Q-values)
+
+Relu Activation Function: f(x)=max(0,x) | non-linear activation + vanishing gradient problem {pass gradient if positive --> larger derivatives --> learning does not stop at the earlier layers}
+MSE loss = (predicted_Q - target_Q)^2 
+
+**** BELLMAN EQUATION ***
+target=immediate reward + (discount factor * best possible future reward) 
+target = r + gamma * max(next_Q) 
+
+ε-greedy policy:
+probability ε → pick random move (exploration)
+probability 1-ε → pick best predicted move (argmax Q(s, :))
+""" 
+
+
 import torch
 import random
 import torch.nn as nn
@@ -46,16 +66,19 @@ class TicTacToeDQ():
         if next_board.game_over():
             max_next_Q = 0
         else:
-            with torch.no_grad():  # don't track gradients for next state
+            with torch.no_grad():  # don't track gradients for next state --> here, we simply need the max_nextQ as a constant, its calculation should not update the weights of the layer
                 max_next_Q = self.model(next_board).max().item()
         return imm_reward + gamma * max_next_Q
 
-    def train_step(self, action:int, next_board:Board, gamma:float=0.9):
+    def train_step(self, action:int, gamma:float=0.9):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
         criterion = nn.MSELoss()
 
+        next_board = self.board.board.copy()
+        next_board[action] = self.player
+        next_board = Board(next_board)
+
         # current Q-values
-        state_tensor = torch.tensor(self.board.board, dtype=torch.float).unsqueeze(0)
         pred_Q = self.model(self.board)
         pred_Q_a = pred_Q[0, action]
 
@@ -69,6 +92,8 @@ class TicTacToeDQ():
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        self.board = next_board #update the version of the board 
 
     # user move: plays opposite to DQN
     def user_move(self, idx:int=-1):
@@ -86,22 +111,16 @@ class TicTacToeDQ():
             return random.choice(self.board.valid_moves())
         else:
             q_values = self.model(self.board)
-            move = torch.argmax(q_values).item()
-            return move
+            return torch.argmax(q_values).item()
 
 
-# -------------------------------
-#  Skeleton left
-# -------------------------------
-# - Implement training loop:
-#     1. Initialize Board and DQN model
-#     2. Loop until game_over:
-#           a) DQN selects move
-#           b) Apply move
-#           c) Observe reward and next state
-#           d) train_step with (state, action, next_state, reward)
-#           e) Opponent/user move
-# - Add replay buffer if desired (for batch training)
-# - Implement epsilon decay over episodes
-# - Logging / printing Q-values and win rates
+
+game = TicTacToeDQ(BasicNN(), Board())
+for i in range(100):
+    while not game.board.game_over():
+        game.user_move()
+        game.train_step(game.select_move())
+        print(f"The winner is {game.board.winner}" )
+
+    
 
