@@ -114,13 +114,13 @@ class TicTacToeDQ():
             return torch.argmax(q_values).item()
 
 
-
 game = TicTacToeDQ(BasicNN(), Board())
 for i in range(100):
     while not game.board.game_over():
         game.user_move()
         game.train_step(game.select_move())
-        print(f"The winner is {game.board.winner}" )
+        print(f"The winner is {game.board.reward()}" )
+
 
     
 

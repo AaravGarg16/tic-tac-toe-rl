@@ -1,8 +1,11 @@
 import random
 
 class Board:
-    def __init__(self):
-        self.board = [0 for _ in range(9)]
+    def __init__(self, board:list=None):
+        if not board or type(board) != list:
+            self.board = [0 for _ in range(9)]
+        else:
+            self.board = board 
     
     def clear(self):
         self.board = [0 for _ in range(9)]
@@ -130,5 +133,5 @@ for i in range(5):
     while not game.board.game_over(): 
         game.store_user_move()
         game.make_move()
-    game.update_Q(game.board.reward())  
+    game.update_Q(game.board.reward())
 print(TicTacToeGame.all_game_history)
