@@ -60,9 +60,18 @@ class TicTacToeDQ():
         self.board = board
         self.player = player
 
+    def reward(self):
+        winner = self.board.winner()
+        if winner == self.player:
+            return 1 
+        elif winner == -self.player:
+            return -1 
+        else:
+            return 0 #draw or ongoing game 
+
     # calculate target Q-value with Bellman equation
     def target(self, next_board:Board, gamma:float):
-        imm_reward = self.board.reward()
+        imm_reward = self.reward()
         if next_board.game_over():
             max_next_Q = 0
         else:
@@ -119,7 +128,7 @@ for i in range(100):
     while not game.board.game_over():
         game.user_move()
         game.train_step(game.select_move())
-        print(f"The winner is {game.board.reward()}" )
+        print(f"The winner is {game.board.winner()}" )
 
 
     

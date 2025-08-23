@@ -52,15 +52,6 @@ class Board:
     
     def is_valid_move(self, idx):
         return self.board[idx] == 0  
-    
-    def reward(self, winner):
-        winner = self.winner()
-        if winner == self.player:
-            return 1 
-        elif winner == -self.player:
-            return -1 
-        else:
-            return 0 #draw or ongoing game 
         
     def winner(self):
         winner = self.horizontal_match() or self.vertical_match() or self.diagonal_match() 
@@ -94,6 +85,15 @@ class TicTacToeGame:
         self.history.append((str(self.board), idx, -self.player))
         self.board.board[idx] = -self.player 
 
+    def reward(self):
+        winner = self.board.winner()
+        if winner == self.player:
+            return 1 
+        elif winner == -self.player:
+            return -1 
+        else:
+            return 0 #draw or ongoing game 
+
     def make_move(self):
         if not self.board.valid_moves():  
             return
@@ -116,12 +116,8 @@ class TicTacToeGame:
 
     
     def update_Q(self, winner):
-        if winner == self.player:
-            self_reward, other_reward = 1, -1
-        elif winner == -self.player:
-            self_reward, other_reward = -1, 1
-        else:
-            self_reward = other_reward = 0
+        self_reward = self.reward()
+        other_reward = -self_reward
 
         for i in range(len(self.history)):
             state, move, player = self.history[i]
