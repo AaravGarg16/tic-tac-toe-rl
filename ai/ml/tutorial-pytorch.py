@@ -42,6 +42,7 @@ class BasicNN(nn.Module):
         input_to_final_relu = scaled_top_relu_output + scaled_bottom_relu_output + self.final_bias
         
         output = F.relu(input_to_final_relu)
+        return output
 
 #-----Visualization
     
@@ -66,8 +67,8 @@ optimizer = SGD(model.parameters(), lr=0.1)
 print("Final bias, before optimization: " + str(model.final_bias.data) + "\n")
 
 #epoch -> each time the entire training data is seen by the model
-inputs = []
-labels = []
+inputs = [1, 0, -1]
+labels = [0, 1, 0]
 for epoch in range(100):
     
     total_loss = 0 #measure of how well the model fits the data, the loss is larger if the model does not fit the training data 
