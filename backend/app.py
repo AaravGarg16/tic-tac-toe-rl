@@ -2,7 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-
+'''
+To be implemented if time is left:
+easiest: random guess
+q_learning : medium
+rl: hard
+'''
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
