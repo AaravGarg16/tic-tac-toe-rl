@@ -1,15 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./styles.css";
 
-/* === API helpers === */
 const API = "http://localhost:8000";
 
-async function apiNewGame(playerMark) {
+async function apiNewGame(playerMark, difficulty) {
   const res = await fetch(`${API}/new`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ player_mark: playerMark })
+    body: JSON.stringify({ player_mark: playerMark, difficulty })
   });
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
@@ -19,15 +19,16 @@ async function apiMove(gameId, position) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ game_id: gameId, position })
   });
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-/* === Win detection (for UI highlights) === */
 const LINES = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8],
   [0, 3, 6], [1, 4, 7], [2, 5, 8],
   [0, 4, 8], [2, 4, 6]
 ];
+
 function winLine(board) {
   for (const [a, b, c] of LINES) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) return [a, b, c];
@@ -35,25 +36,18 @@ function winLine(board) {
   return null;
 }
 
-/* === Tiny confetti helper (no deps) === */
 function useConfetti() {
   const running = useRef(false);
   return () => {
     if (running.current) return;
     running.current = true;
-
     const canvas = document.createElement("canvas");
     canvas.className = "confetti";
     document.body.appendChild(canvas);
     const ctx = canvas.getContext("2d");
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     resize();
     window.addEventListener("resize", resize);
-
     const pieces = Array.from({ length: 100 }, () => ({
       x: Math.random() * canvas.width,
       y: -20 - Math.random() * canvas.height * 0.4,
@@ -63,22 +57,14 @@ function useConfetti() {
       r: Math.random() * Math.PI,
       vr: -0.1 + Math.random() * 0.2
     }));
-
     let t = 0;
     (function loop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const p of pieces) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.r += p.vr;
-        if (p.y > canvas.height + 20) {
-          p.y = -20;
-          p.x = Math.random() * canvas.width;
-        }
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.r);
-        ctx.fillStyle = ["#ff6b6b", "#ffd93d", "#6bcbef", "#b8f2e6", "#c77dff"][(p.x | 0) % 5];
+        p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        if (p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+        ctx.fillStyle = ["#ff6b6b","#ffd93d","#6bcbef","#b8f2e6","#c77dff"][(p.x | 0) % 5];
         ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s);
         ctx.restore();
       }
@@ -93,7 +79,6 @@ function useConfetti() {
   };
 }
 
-/* === App === */
 export default function App() {
   const [board, setBoard] = useState(Array(9).fill(""));
   const [status, setStatus] = useState("in_progress"); // "in_progress" | "X" | "O" | "draw"
@@ -101,18 +86,18 @@ export default function App() {
   const [player, setPlayer] = useState("X");
   const [ai, setAi] = useState("O");
   const [started, setStarted] = useState(false);
+  const [difficulty, setDifficulty] = useState("hard"); // "easy" | "hard"
 
   const resultOpen = started && status !== "in_progress";
   const wins = useMemo(() => winLine(board), [board]);
   const confetti = useConfetti();
 
   useEffect(() => {
-    if (!started) return;
-    if (status === player) confetti();
+    if (started && status === player) confetti();
   }, [status, player, started, confetti]);
 
   async function startGame() {
-    const g = await apiNewGame(player);
+    const g = await apiNewGame(player, difficulty);
     setGameId(g.game_id);
     setBoard(g.board);
     setStatus(g.status);
@@ -145,11 +130,34 @@ export default function App() {
           <button
             className={`seg-btn ${player === "X" ? "active" : ""}`}
             onClick={() => { if (!started) { setPlayer("X"); setAi("O"); } }}
-            disabled={started}>Play as X</button>
+            disabled={started}
+          >
+            Play as X
+          </button>
           <button
             className={`seg-btn ${player === "O" ? "active" : ""}`}
             onClick={() => { if (!started) { setPlayer("O"); setAi("X"); } }}
-            disabled={started}>Play as O</button>
+            disabled={started}
+          >
+            Play as O
+          </button>
+        </div>
+
+        <div className="seg">
+          <button
+            className={`seg-btn ${difficulty === "easy" ? "active" : ""}`}
+            onClick={() => { if (!started) setDifficulty("easy"); }}
+            disabled={started}
+          >
+            Easy
+          </button>
+          <button
+            className={`seg-btn ${difficulty === "hard" ? "active" : ""}`}
+            onClick={() => { if (!started) setDifficulty("hard"); }}
+            disabled={started}
+          >
+            Hard
+          </button>
         </div>
 
         {!started ? (
@@ -163,7 +171,8 @@ export default function App() {
         className={`board
           ${status === player ? "win-human" : ""}
           ${status === ai ? "win-ai" : ""}
-          ${resultOpen ? "no-bg glow-first" : ""}`}>
+          ${resultOpen ? "no-bg glow-first" : ""}`}
+      >
         <div className={`grid ${status === ai ? "shake" : ""} ${resultOpen ? "finished" : ""}`}>
           {board.map((cell, i) => {
             const highlight = wins?.includes(i);
@@ -172,7 +181,8 @@ export default function App() {
                 key={i}
                 className={`cell ${cell || "empty"} ${highlight ? "win" : ""}`}
                 onClick={() => clickCell(i)}
-                disabled={!started || !!cell || status !== "in_progress"}>
+                disabled={!started || !!cell || status !== "in_progress"}
+              >
                 {cell}
               </button>
             );
