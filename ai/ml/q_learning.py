@@ -53,15 +53,21 @@ class Board:
     def is_valid_move(self, idx):
         return self.board[idx] == 0  
     
-    def reward(self):
-        winner = self.horizontal_match() or self.vertical_match() or self.diagonal_match()
-        if winner:
-            return winner 
+    def reward(self, winner):
+        winner = self.winner()
+        if winner == self.player:
+            return 1 
+        elif winner == -self.player:
+            return -1 
         else:
             return 0 #draw or ongoing game 
+        
+    def winner(self):
+        winner = self.horizontal_match() or self.vertical_match() or self.diagonal_match() 
+        return winner if winner else 0
     
     def game_over(self):
-        return self.is_full() or self.reward()!=0
+        return self.is_full() or self.winner()!=0
 
 
 class TicTacToeGame:
@@ -123,7 +129,8 @@ class TicTacToeGame:
             self.__class__.all_game_history[(state, move)] = \
                 self.__class__.all_game_history[(state, move)] + self.lr * \
                 (reward - self.__class__.all_game_history[(state, move)])
-
+            
+        sorted_dict = dict(sorted(self.__class__.all_game_history.items(), key=lambda item: item[1], reverse=True))
 
 # -------------------------
 # Training loop example
@@ -133,5 +140,6 @@ for i in range(5):
     while not game.board.game_over(): 
         game.store_user_move()
         game.make_move()
-    game.update_Q(game.board.reward())
-print(TicTacToeGame.all_game_history)
+    game.update_Q(game.board.winner()) 
+    print(f"The winner is {game.board.winner()}")
+
