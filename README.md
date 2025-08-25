@@ -15,5 +15,5 @@ Features:
 
 ○ Dynamic difficulty scaling: easy → medium → hard based on AI algorithm choice. 
 
-<img width="1225" height="828" alt="image" src="https://github.com/user-attachments/assets/0fe778c8-98cd-4478-8f41-c55e43a505b9" />
+<img width="1225" height="828" alt="image" src="https://github.com/user-attachments/assets/a4b1eb58-c684-4d52-98de-50d782b53275" />
 
